@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_display_name">FUN OFFLINE</string>
+    <string name="nav_home">হোম</string>
+    <string name="nav_games">৯টি গেম</string>
+    <string name="nav_matches">১v১ ম্যাচ</string>
+    <string name="nav_wallet">ওয়ালেট</string>
+    <string name="nav_profile">প্রোফাইল</string>
+    <string name="purchased_coins">ক্রয়কৃত কয়েন</string>
+    <string name="practice_points">প্র্যাকটিস পয়েন্ট</string>
+    <string name="no_cashout_rule">ক্যাশ-আউট, উত্তোলন বা ইউজার-টু-ইউজার কয়েন ট্রান্সফার নিষিদ্ধ।</string>
+    <string name="match_eligibility_note">১ বনাম ১ ম্যাচ শুধুমাত্র ক্যারম, পুল ও লুডু স্টারের জন্য সক্রিয়।</string>
+    <string name="teen_patti_free_only">তিন পাত্তি শুধুমাত্র ফ্রি-প্লে — কোনো বাজি নেই।</string>
+    <string name="camera_mic_notice_channel">সক্রিয় ভয়েস/ক্যামেরা সেশন</string>
+    <string name="camera_mic_notice_text">আপনার স্পষ্ট সম্মতিতে FUN OFFLINE ক্যামেরা বা মাইক্রোফোন সেশন চালু আছে। বন্ধ করতে ট্যাপ করুন।</string>
+</resources>

@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Admin privilege is verified strictly against server-managed /admins/{uid}
+    // Never trust client-supplied role fields on /users/{uid}.
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isUserPreferencesUpdateValid(data) {
+      return data.preferredTheme in ['AMOLED', 'DARK', 'LIGHT']
+        && data.preferredLanguage in ['en', 'bn']
+        && data.updatedAt == request.time;
+    }
+
+    // /admins/{adminUid} — Server Admin SDK only
+    match /admins/{adminUid} {
+      allow get: if isValidId(adminUid) && (isOwner(adminUid) || isAdmin());
+      allow list, create, update, delete: if false;
+    }
+
+    // /users/{userId} — Public-safe gaming account state; balances, role, and status are server-only
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      // Registration and wallet mutations MUST go through trusted Cloud Functions
+      allow create, delete: if false;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && incoming().diff(existing()).affectedKeys().hasOnly(['preferredTheme', 'preferredLanguage', 'updatedAt'])
+        && isUserPreferencesUpdateValid(incoming())
+        && incoming().uid == existing().uid
+        && incoming().role == existing().role
+        && incoming().accountStatus == existing().accountStatus
+        && incoming().purchasedCoins == existing().purchasedCoins
+        && incoming().practicePoints == existing().practicePoints
+        && incoming().referralCode == existing().referralCode;
+    }
+
+    // /users/{userId}/private/{docId} — Strict PII isolation
+    match /users/{userId}/private/{docId} {
+      allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
+      allow list, create, update, delete: if false;
+    }
+
+    // /games/{gameId} — Read-only for authenticated active users; Admin SDK writes via backend
+    match /games/{gameId} {
+      allow get: if isValidId(gameId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update, delete: if false;
+    }
+
+    // /packages/{packageId} — Admin-editable via trusted backend endpoints
+    match /packages/{packageId} {
+      allow get: if isValidId(packageId) && isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update, delete: if false;
+    }
+
+    // /payments/{paymentId} — Users can read ONLY their own submissions; admins can read all.
+    // Creation & approval/rejection happen exclusively inside trusted backend transactions.
+    match /payments/{paymentId} {
+      allow get: if isValidId(paymentId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // /matches/{matchId} — Strictly restricted to carrom, pool, and ludo_star; server-authoritative
+    match /matches/{matchId} {
+      allow get: if isValidId(matchId) && isSignedIn()
+        && existing().gameId in ['carrom', 'pool', 'ludo_star']
+        && (existing().hostUserId == request.auth.uid || existing().guestUserId == request.auth.uid || existing().status == 'WAITING_OPPONENT' || isAdmin());
+      allow list: if isSignedIn()
+        && resource.data.gameId in ['carrom', 'pool', 'ludo_star']
+        && (resource.data.hostUserId == request.auth.uid || resource.data.guestUserId == request.auth.uid || resource.data.status == 'WAITING_OPPONENT' || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // /transactions/{transactionId} — Immutable server-written ledger
+    match /transactions/{transactionId} {
+      allow get: if isValidId(transactionId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // /referrals/{referralCode} — Read-only lookup; claimed exclusively by backend
+    match /referrals/{referralCode} {
+      allow get: if isValidId(referralCode) && isSignedIn() && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // /notifications/{notificationId} — Broadcast/user notifications
+    match /notifications/{notificationId} {
+      allow get: if isValidId(notificationId) && isSignedIn() && (existing().targetUid == 'ALL' || existing().targetUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.targetUid == 'ALL' || resource.data.targetUid == request.auth.uid || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // /adminAuditLogs/{logId} — Immutable audit logs readable only by admins
+    match /adminAuditLogs/{logId} {
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+  }
+}

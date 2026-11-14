@@ -1,0 +1,170 @@
+{
+  "entities": {
+    "UserPublic": {
+      "title": "UserPublic",
+      "description": "Public player profile without PII or mutable client balances.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 2, "maxLength": 48 },
+        "referralCode": { "type": "string", "minLength": 6, "maxLength": 16, "pattern": "^[A-Z0-9]+$" },
+        "referredByCode": { "type": "string", "minLength": 6, "maxLength": 16 },
+        "role": { "type": "string", "enum": ["USER", "ADMIN"] },
+        "accountStatus": { "type": "string", "enum": ["PENDING_APPROVAL", "ACTIVE", "SUSPENDED"] },
+        "purchasedCoins": { "type": "integer" },
+        "practicePoints": { "type": "integer" },
+        "premiumTier": { "type": "string", "enum": ["FREE", "PRO_MONTHLY", "PRO_ANNUAL"] },
+        "premiumExpiresAtMs": { "type": "integer" },
+        "preferredTheme": { "type": "string", "enum": ["AMOLED", "DARK", "LIGHT"] },
+        "preferredLanguage": { "type": "string", "enum": ["en", "bn"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "referralCode", "role", "accountStatus", "purchasedCoins", "practicePoints", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII document accessible only to owner and server-verified admins.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 254 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "lastConsentGrantAtMs": { "type": "integer" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "PaymentPackage": {
+      "title": "PaymentPackage",
+      "description": "Admin-editable coin and premium membership packages.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "nameEn": { "type": "string", "maxLength": 80 },
+        "nameBn": { "type": "string", "maxLength": 80 },
+        "coinAmount": { "type": "integer" },
+        "priceBdt": { "type": "integer" },
+        "isMembership": { "type": "boolean" },
+        "membershipDays": { "type": "integer" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "nameEn", "nameBn", "coinAmount", "priceBdt", "isMembership", "active"]
+    },
+    "PaymentSubmission": {
+      "title": "PaymentSubmission",
+      "description": "User payment submission via bKash, Nagad, Rocket, or Bank Transfer awaiting admin review.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "packageId": { "type": "string", "maxLength": 64 },
+        "method": { "type": "string", "enum": ["BKASH", "NAGAD", "ROCKET", "BANK_TRANSFER"] },
+        "transactionId": { "type": "string", "minLength": 6, "maxLength": 40, "pattern": "^[A-Za-z0-9\\-_]+$" },
+        "senderLastFour": { "type": "string", "minLength": 4, "maxLength": 4 },
+        "amountBdt": { "type": "integer" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "reviewedByAdminId": { "type": "string", "maxLength": 128 },
+        "reviewNote": { "type": "string", "maxLength": 240 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "packageId", "method", "transactionId", "senderLastFour", "amountBdt", "status", "createdAt", "updatedAt"]
+    },
+    "MatchSession": {
+      "title": "MatchSession",
+      "description": "1v1 friendly match strictly limited to carrom, pool, or ludo_star using Practice Points.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "gameId": { "type": "string", "enum": ["carrom", "pool", "ludo_star"] },
+        "hostUserId": { "type": "string", "maxLength": 128 },
+        "guestUserId": { "type": "string", "maxLength": 128 },
+        "practiceEntryPoints": { "type": "integer" },
+        "status": { "type": "string", "enum": ["WAITING_OPPONENT", "AWAITING_ACCEPTANCE", "ACTIVE", "COMPLETED", "FORFEIT_DISCONNECT", "EXPIRED", "CANCELLED"] },
+        "winnerUserId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "gameId", "hostUserId", "practiceEntryPoints", "status", "createdAt", "updatedAt"]
+    },
+    "CoinTransaction": {
+      "title": "CoinTransaction",
+      "description": "Immutable server-written ledger entry for Purchased Coins and Practice Points.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "bucket": { "type": "string", "enum": ["PURCHASED_COINS", "PRACTICE_POINTS"] },
+        "delta": { "type": "integer" },
+        "reason": { "type": "string", "maxLength": 48 },
+        "referenceId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "bucket", "delta", "reason", "referenceId", "createdAt"]
+    },
+    "GameCatalogItem": {
+      "title": "GameCatalogItem",
+      "description": "Server configuration for the exact 9 games.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "enum": ["level_devil", "mini_militia", "carrom", "teen_patti", "brick_block", "pool", "balloon_shooter", "archery", "ludo_star"] },
+        "enabled": { "type": "boolean" },
+        "supports1v1Match": { "type": "boolean" },
+        "maintenanceNote": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "enabled", "supports1v1Match"]
+    },
+    "AdminAuditLog": {
+      "title": "AdminAuditLog",
+      "description": "Immutable administrative action log.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "adminUid": { "type": "string", "maxLength": 128 },
+        "action": { "type": "string", "maxLength": 64 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adminUid", "action", "targetId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/UserPublic" },
+      "description": "Server-managed allowlist of verified admin UIDs."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublic" },
+      "description": "User profile; balances, role, and accountStatus are server-only writable."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Isolated PII subcollection."
+    },
+    "/games/{gameId}": {
+      "schema": { "$ref": "#/entities/GameCatalogItem" },
+      "description": "Nine-game catalog status."
+    },
+    "/packages/{packageId}": {
+      "schema": { "$ref": "#/entities/PaymentPackage" },
+      "description": "Admin-editable coin and membership packages."
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentSubmission" },
+      "description": "bKash/Nagad/Rocket/Bank submissions; reviewed only by server/admin."
+    },
+    "/matches/{matchId}": {
+      "schema": { "$ref": "#/entities/MatchSession" },
+      "description": "1v1 match sessions restricted to carrom, pool, and ludo_star."
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/CoinTransaction" },
+      "description": "Immutable server-written coin and practice point ledger."
+    },
+    "/adminAuditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AdminAuditLog" },
+      "description": "Immutable server-written admin action logs."
+    }
+  }
+}

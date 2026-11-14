@@ -1,0 +1,6 @@
+{
+  "name": "FUN OFFLINE",
+  "description": "FUN OFFLINE — Production-oriented Kotlin & Jetpack Compose Android gaming platform with single-APK role separation, 9 original games, 1v1 matchmaking for Carrom/Pool/Ludo Star, dual-wallet economy, and Firebase backend architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

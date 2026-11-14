@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_display_name">FUN OFFLINE</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_games">9 Games</string>
+    <string name="nav_matches">1v1 Match</string>
+    <string name="nav_wallet">Wallet</string>
+    <string name="nav_profile">Profile</string>
+    <string name="purchased_coins">Purchased Coins</string>
+    <string name="practice_points">Practice Points</string>
+    <string name="no_cashout_rule">No cash-out, withdrawals, or user-to-user coin transfers.</string>
+    <string name="match_eligibility_note">1v1 Match is enabled only for Carrom, Pool, and Ludo Star.</string>
+    <string name="teen_patti_free_only">Teen Patti is Free Play Only — zero wagering.</string>
+    <string name="camera_mic_notice_channel">Active Voice/Camera Session</string>
+    <string name="camera_mic_notice_text">FUN OFFLINE camera or microphone session is active with your explicit consent. Tap to manage or end.</string>
+</resources>

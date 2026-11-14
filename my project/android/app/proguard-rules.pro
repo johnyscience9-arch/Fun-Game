@@ -1,0 +1,2 @@
+-keepclassmembers class com.funoffline.app.data.model.** { *; }
+-dontwarn com.google.firebase.**
